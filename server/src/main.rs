@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::str::from_utf8;
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode};
@@ -21,6 +22,13 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Err
 
             let reversed_body = whole_body.iter().rev().cloned().collect::<Vec<u8>>();
             Ok(Response::new(Body::from(reversed_body)))
+        }
+
+        (&Method::POST, "/parrot") => {
+            let whole_body = hyper::body::to_bytes(req.into_body()).await?;
+            let bstring = from_utf8(&whole_body).unwrap();
+            let message = format!("You said: {}", bstring);
+            Ok(Response::new(Body::from(message)))
         }
 
         // Return the 404 Not Found for other routes.
